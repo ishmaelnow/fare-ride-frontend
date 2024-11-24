@@ -15,10 +15,16 @@ const BookingPage = () => {
     pickupTime: '',
   });
 
+  // Dynamically determine backend URL based on environment
+  const baseURL =
+    process.env.NODE_ENV === 'production'
+      ? 'https://fare-backend-72dcc5cb3edd.herokuapp.com' // Production URL
+      : process.env.REACT_APP_BACKEND_URL; // Development URL from .env
+
   // Fetch rides from backend
   const fetchRides = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/rides`);
+      const response = await axios.get(`${baseURL}/api/rides`);
       setRides(response.data);
     } catch (error) {
       console.error('Error fetching rides:', error.message);
@@ -28,7 +34,7 @@ const BookingPage = () => {
   // Fetch drivers from backend
   const fetchDrivers = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/drivers`);
+      const response = await axios.get(`${baseURL}/api/drivers`);
       setDrivers(response.data);
     } catch (error) {
       console.error('Error fetching drivers:', error.message);
@@ -39,7 +45,7 @@ const BookingPage = () => {
   const bookRide = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/rides`, form, {
+      const response = await axios.post(`${baseURL}/api/rides`, form, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -63,7 +69,7 @@ const BookingPage = () => {
   const assignDriver = async (rideId, driverName) => {
     try {
       const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/rides/${rideId}/assign-driver`,
+        `${baseURL}/api/rides/${rideId}/assign-driver`,
         { driverName },
         {
           headers: {
