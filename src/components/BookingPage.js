@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 import './BookingPage.css'; // Import custom styles
@@ -21,25 +21,25 @@ const BookingPage = () => {
       ? process.env.REACT_APP_BACKEND_URL || 'https://fare-backend-72dcc5cb3edd.herokuapp.com' // Use environment variable or fallback to production URL
       : 'http://localhost:5000'; // Development URL for local testing
 
-  // Fetch rides from backend
-  const fetchRides = async () => {
+  // Memoized fetchRides function
+  const fetchRides = useCallback(async () => {
     try {
       const response = await axios.get(`${baseURL}/api/rides`);
       setRides(response.data);
     } catch (error) {
       console.error('Error fetching rides:', error.message);
     }
-  };
+  }, [baseURL]);
 
-  // Fetch drivers from backend
-  const fetchDrivers = async () => {
+  // Memoized fetchDrivers function
+  const fetchDrivers = useCallback(async () => {
     try {
       const response = await axios.get(`${baseURL}/api/drivers`);
       setDrivers(response.data);
     } catch (error) {
       console.error('Error fetching drivers:', error.message);
     }
-  };
+  }, [baseURL]);
 
   // Book a ride
   const bookRide = async (e) => {
@@ -85,10 +85,11 @@ const BookingPage = () => {
     }
   };
 
+  // useEffect to fetch rides and drivers when the component mounts
   useEffect(() => {
     fetchRides();
-    fetchDrivers(); // Fetch drivers when the component loads
-  }, []);
+    fetchDrivers();
+  }, [fetchRides, fetchDrivers]);
 
   return (
     <div className="container mt-4">
