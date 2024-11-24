@@ -18,8 +18,8 @@ const BookingPage = () => {
   // Dynamically determine backend URL based on environment
   const baseURL =
     process.env.NODE_ENV === 'production'
-      ? 'https://fare-backend-72dcc5cb3edd.herokuapp.com' // Production URL
-      : process.env.REACT_APP_BACKEND_URL; // Development URL from .env
+      ? process.env.REACT_APP_BACKEND_URL || 'https://fare-backend-72dcc5cb3edd.herokuapp.com' // Use environment variable or fallback to production URL
+      : 'http://localhost:5000'; // Development URL for local testing
 
   // Fetch rides from backend
   const fetchRides = async () => {
