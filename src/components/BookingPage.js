@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap
 import './BookingPage.css'; // Import custom styles
 
 const BookingPage = () => {
-  const [rides, setRides] = useState([]);
-  const [drivers, setDrivers] = useState([]);
   const [form, setForm] = useState({
     customerName: '',
     phone: '',
@@ -15,31 +13,13 @@ const BookingPage = () => {
     pickupTime: '',
   });
 
+  const [currentRide, setCurrentRide] = useState(null); // Store the booked ride
+
   // Dynamically determine backend URL based on environment
   const baseURL =
     process.env.NODE_ENV === 'production'
       ? process.env.REACT_APP_BACKEND_URL || 'https://fare-backend-72dcc5cb3edd.herokuapp.com' // Use environment variable or fallback to production URL
       : 'http://localhost:5000'; // Development URL for local testing
-
-  // Memoized fetchRides function
-  const fetchRides = useCallback(async () => {
-    try {
-      const response = await axios.get(`${baseURL}/api/rides`);
-      setRides(response.data);
-    } catch (error) {
-      console.error('Error fetching rides:', error.message);
-    }
-  }, [baseURL]);
-
-  // Memoized fetchDrivers function
-  const fetchDrivers = useCallback(async () => {
-    try {
-      const response = await axios.get(`${baseURL}/api/drivers`);
-      setDrivers(response.data);
-    } catch (error) {
-      console.error('Error fetching drivers:', error.message);
-    }
-  }, [baseURL]);
 
   // Book a ride
   const bookRide = async (e) => {
@@ -51,6 +31,8 @@ const BookingPage = () => {
         },
       });
       console.log('Ride booked:', response.data);
+      setCurrentRide(response.data); // Save the booked ride to state
+      alert('Ride successfully booked! Check your confirmation below.');
       setForm({
         customerName: '',
         phone: '',
@@ -59,37 +41,11 @@ const BookingPage = () => {
         dropoffLocation: '',
         pickupTime: '',
       });
-      fetchRides(); // Refresh rides list
     } catch (error) {
       console.error('Error booking ride:', error.message);
+      alert('Failed to book the ride. Please try again.');
     }
   };
-
-  // Assign an existing driver to a specific ride
-  const assignDriver = async (rideId, driverName) => {
-    try {
-      const response = await axios.put(
-        `${baseURL}/api/rides/${rideId}/assign-driver`,
-        { driverName },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log('Driver assigned:', response.data);
-
-      fetchRides(); // Refresh rides list
-    } catch (error) {
-      console.error('Error assigning driver:', error.message);
-    }
-  };
-
-  // useEffect to fetch rides and drivers when the component mounts
-  useEffect(() => {
-    fetchRides();
-    fetchDrivers();
-  }, [fetchRides, fetchDrivers]);
 
   return (
     <div className="container mt-4">
@@ -161,36 +117,40 @@ const BookingPage = () => {
         </div>
       </div>
 
-      <h2 className="text-center mb-4">Rides</h2>
-      <ul className="list-group">
-        {rides.length > 0 ? (
-          rides.map((ride) => (
-            <li key={ride._id} className="list-group-item mb-3">
-              <strong>{ride.customerName}</strong> - {ride.pickupLocation} to {ride.dropoffLocation} <br />
-              <em>Pickup Time:</em> {new Date(ride.pickupTime).toLocaleString()} <br />
-              <em>Assigned Driver:</em> {ride.driverName || 'None'} <br />
-              <div className="mt-2">
-                <select
-                  className="form-select"
-                  onChange={(e) => assignDriver(ride._id, e.target.value)}
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Select Driver
-                  </option>
-                  {drivers.map((driver) => (
-                    <option key={driver._id} value={driver.name}>
-                      {driver.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </li>
-          ))
-        ) : (
-          <li className="list-group-item">No rides available</li>
-        )}
-      </ul>
+      {/* Display the current ride confirmation */}
+      {currentRide && (
+        <div className="card shadow mt-4">
+          <div className="card-body">
+            <h2 className="text-center mb-4">Your Ride Confirmation</h2>
+            <ul className="list-group">
+              <li className="list-group-item">
+                <strong>Ride ID:</strong> {currentRide._id}
+              </li>
+              <li className="list-group-item">
+                <strong>Customer Name:</strong> {currentRide.customerName}
+              </li>
+              <li className="list-group-item">
+                <strong>Phone:</strong> {currentRide.phone}
+              </li>
+              <li className="list-group-item">
+                <strong>Email:</strong> {currentRide.email}
+              </li>
+              <li className="list-group-item">
+                <strong>Pickup Location:</strong> {currentRide.pickupLocation}
+              </li>
+              <li className="list-group-item">
+                <strong>Dropoff Location:</strong> {currentRide.dropoffLocation}
+              </li>
+              <li className="list-group-item">
+                <strong>Pickup Time:</strong> {new Date(currentRide.pickupTime).toLocaleString()}
+              </li>
+              <li className="list-group-item">
+                <strong>Assigned Driver:</strong> {currentRide.driverName || 'Not Assigned'}
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
