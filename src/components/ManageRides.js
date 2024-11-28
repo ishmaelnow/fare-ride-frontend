@@ -5,7 +5,7 @@ const ManageRides = () => {
   const [rides, setRides] = useState([]);
   const [drivers, setDrivers] = useState([]);
 
-  const baseURL = 'http://localhost:5000/api'; // Backend base URL
+  const baseURL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api'; // Backend base URL
 
   // Fetch rides and drivers on component mount
   useEffect(() => {
